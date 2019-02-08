@@ -8,9 +8,6 @@
 		"manifest": true,
 		"AssetManager": false,
 		"Mover": false,
-		"MoverDiagonal": false,
-		"Snake": false,
-		"Bug": false,
-		"UserInterface": false
+		"Card": false
 	}
 }

@@ -14,6 +14,26 @@
 
 	// game objects
 	let assetManager;
+	let cardNumber;
+	const cards = new Array();
+	const positions = [
+		'100 100',
+		'200 100',
+		'300 100',
+		'400 100',
+		'100 200',
+		'200 200',
+		'300 200',
+		'400 200',
+		'100 300',
+		'200 300',
+		'300 300',
+		'400 300',
+		'100 400',
+		'200 400',
+		'300 400',
+		'400 400'
+	];
 
 	//! Make these
 	let introCaption;
@@ -25,8 +45,24 @@
 		console.log('>> setup');
 		// kill event listener
 		e.remove();
+		let i = 1;
 
-		// construct game objects
+		// Randomize the order of the cards
+		positions.sort(function(a, b) {
+			return Math.random() - 0.5;
+		});
+
+		// Construct 16 cards and randomize position
+		for (let i = 0; i < 16; i++) {
+			if (i == 0) {
+				cardNumber = 1;
+			} else {
+				cardNumber = Math.floor(i / 2) + 1;
+			}
+			console.log(cardNumber);
+			cards.push(new Card(stage, assetManager, positions[i], cardNumber));
+			// cards[i].setupMe();
+		}
 
 		// setup event listener to start game
 		// background.on('click', onStartGame);
