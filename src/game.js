@@ -61,7 +61,7 @@
 			}
 			console.log(cardNumber);
 			cards.push(new Card(stage, assetManager, positions[i], cardNumber));
-			// cards[i].setupMe();
+			// cards[i].on('click', onCard1Clicked);
 		}
 
 		// setup event listener to start game
@@ -71,6 +71,11 @@
 		// startup the ticker
 		createjs.Ticker.framerate = FRAME_RATE;
 		createjs.Ticker.on('tick', onTick);
+	}
+
+	function onCard1Clicked(e) {
+		// When Card 1 is clicked
+		console.log('I was clicked, I am this card ' + e);
 	}
 
 	function onStartGame(e) {
