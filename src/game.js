@@ -59,9 +59,8 @@
 			} else {
 				cardNumber = Math.floor(i / 2) + 1;
 			}
-			console.log(cardNumber);
-			cards.push(new Card(stage, assetManager, positions[i], cardNumber));
-			// cards[i].on('click', onCard1Clicked);
+			cards.push(new Card(stage, assetManager, positions[i], cardNumber, i));
+			cards[i]._sprite.on('cardClicked', onCard1Clicked);
 		}
 
 		// setup event listener to start game
@@ -75,7 +74,13 @@
 
 	function onCard1Clicked(e) {
 		// When Card 1 is clicked
-		console.log('I was clicked, I am this card ' + e);
+		console.log('I was clicked, I am this card ' + e.index);
+
+		//! Have to variables, first guess, second guess, make them
+		//! equal to the object that caused the event, if the numbers are
+		//! the same disable them otherwise flip them back over
+
+		//!Disable clicking on everything during animations?
 	}
 
 	function onStartGame(e) {
