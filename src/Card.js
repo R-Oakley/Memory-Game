@@ -10,10 +10,13 @@ class Card {
 		this._cardNumber = number;
 		this._cardIndex = index;
 
+		this._guessed = false;
+		this._disabled = false;
 		this._hidden = true;
 
 		// this._cardClicked = new createjs.Event('card' + number);
 		this._cardClicked = new createjs.Event('cardClicked', true);
+		this._cardDisable = new createjs.Event('cardDisable', true);
 		this._sprite.on('click', this._onClicked, this);
 
 		this.setupMe();
@@ -33,6 +36,8 @@ class Card {
 		this._sprite.gotoAndPlay('card' + this._cardNumber + 'Hide');
 		this._sprite.on('animationend', e => {
 			this._sprite.stop();
+			this._hidden = !this._hidden;
+			this._disabled = false;
 			e.remove();
 		});
 	}
@@ -41,28 +46,54 @@ class Card {
 		this._sprite.gotoAndPlay('card' + this._cardNumber + 'Reveal');
 		this._sprite.on('animationend', e => {
 			this._sprite.stop();
+			this._hidden = !this._hidden;
+			e.remove();
+			this._sprite.dispatchEvent(this._cardClicked);
+		});
+	}
+
+	shakeMe() {
+		this._sprite.gotoAndPlay('card' + this._cardNumber + 'Shake');
+		this._sprite.on('animationend', e => {
+			this._sprite.stop();
+			this.hideMe();
+			this.enableMe();
 			e.remove();
 		});
 	}
 
-	shakeMe() {}
+	disableMe() {
+		this._disabled = true;
+	}
 
-	disableMe() {}
+	enableMe() {
+		this._sprite.on('click', this._onClicked, this);
+		if (!this._guessed && this._hidden) {
+			this._disabled = false;
+		}
+	}
+
+	correctGuess() {
+		this._guessed = true;
+		this._disabled = true;
+	}
 
 	// ---------------------------------------------- Event Handlers
-	_onClicked() {
-		// console.log('Card ' + this._cardNumber + ' clicked');
+	_onClicked(e) {
+		// If card is disabled just leave the function
+		if (this._disabled) {
+			e.remove();
+			return;
+		}
+		this._sprite.dispatchEvent(this._cardDisable);
+
+		// console.log(this._hidden);
 		//! This line fixes the property not being recognized after first click
 		this._cardClicked.target = null;
 		this._cardClicked.index = this._cardIndex;
-		// this._stage.dispatchEvent(this._cardClicked);
-		this._sprite.dispatchEvent(this._cardClicked);
+
 		if (this._hidden) {
 			this.revealMe();
-		} else {
-			this.hideMe();
 		}
-
-		this._hidden = !this._hidden;
 	}
 }
