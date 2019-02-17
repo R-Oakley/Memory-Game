@@ -17,6 +17,7 @@ class Card {
 		// this._cardClicked = new createjs.Event('card' + number);
 		this._cardClicked = new createjs.Event('cardClicked', true);
 		this._cardDisable = new createjs.Event('cardDisable', true);
+		this._cardEnable = new createjs.Event('cardEnable', true);
 		this._sprite.on('click', this._onClicked, this);
 
 		this.setupMe();
@@ -38,6 +39,7 @@ class Card {
 			this._sprite.stop();
 			this._hidden = !this._hidden;
 			this._disabled = false;
+			this._sprite.dispatchEvent(this._cardEnable);
 			e.remove();
 		});
 	}
@@ -57,7 +59,6 @@ class Card {
 		this._sprite.on('animationend', e => {
 			this._sprite.stop();
 			this.hideMe();
-			this.enableMe();
 			e.remove();
 		});
 	}

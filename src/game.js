@@ -66,6 +66,7 @@
 			cards.push(new Card(stage, assetManager, positions[i], cardNumber, i));
 			cards[i]._sprite.on('cardClicked', onCardClicked);
 			cards[i]._sprite.on('cardDisable', onDisableCards);
+			cards[i]._sprite.on('cardEnable', onEnableCards);
 		}
 
 		// setup event listener to start game
@@ -78,14 +79,12 @@
 	}
 
 	function onCardClicked(e) {
-		//! Remove me - Just for seeing when enabling is done
-		let count = 1;
-
 		// console.log('I was clicked, I am this card ' + e.index);
 
 		if (firstGuess == null) {
 			firstGuess = cards[e.index];
 			// console.log('Card Number: ' + firstGuess._cardNumber);
+			onEnableCards();
 		} else {
 			secondGuess = cards[e.index];
 			// console.log('Card Number: ' + secondGuess._cardNumber);
@@ -97,6 +96,10 @@
 				secondGuess.correctGuess();
 				firstGuess = null;
 				secondGuess = null;
+
+				if (correctMatches == 8) {
+					console.log('You Won!');
+				}
 			} else {
 				firstGuess.shakeMe();
 				secondGuess.shakeMe();
@@ -105,16 +108,6 @@
 				console.log('wrong guess');
 			}
 		}
-
-		//! This doesn't wait for after the Shake me Animation, Can I fix this?
-		cards.forEach(card => {
-			card.enableMe();
-			count++;
-
-			if (count == 16) {
-				console.log('All Clear');
-			}
-		});
 
 		//! Have to variables, first guess, second guess, make them
 		//! equal to the object that caused the event, if the numbers are
@@ -127,6 +120,21 @@
 	function onDisableCards(e) {
 		cards.forEach(card => {
 			card.disableMe();
+		});
+	}
+
+	function onEnableCards(e) {
+		//! Remove me - Just for seeing when enabling is done
+		let count = 1;
+
+		//! This doesn't wait for after the Shake me Animation, Can I fix this?
+		cards.forEach(card => {
+			card.enableMe();
+			count++;
+
+			if (count == 16) {
+				console.log('All Clear');
+			}
 		});
 	}
 
