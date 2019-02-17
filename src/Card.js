@@ -39,6 +39,7 @@ class Card {
 			this._sprite.stop();
 			this._hidden = !this._hidden;
 			this._disabled = false;
+			this._guessed = false;
 			this._sprite.dispatchEvent(this._cardEnable);
 			e.remove();
 		});
@@ -75,8 +76,15 @@ class Card {
 	}
 
 	correctGuess() {
+		this._sprite.gotoAndPlay('card' + this._cardNumber + 'Correct');
+		this._sprite.on('animationend', e => {
+			this._sprite.stop();
+			this._sprite.dispatchEvent(this._cardEnable);
+			e.remove();
+		});
+
 		this._guessed = true;
-		this._disabled = true;
+		// this._disabled = true;
 	}
 
 	// ---------------------------------------------- Event Handlers

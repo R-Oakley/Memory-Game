@@ -97,6 +97,10 @@
 				firstGuess = null;
 				secondGuess = null;
 
+				//! Here I need something like shake me for correct guesses
+				//! Then in that function i'd dispatch this event on animation completion
+				// onEnableCards();
+
 				if (correctMatches == 8) {
 					console.log('You Won!');
 				}
