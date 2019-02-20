@@ -5,19 +5,27 @@
  */
 
 (function() {
+	//points constants
+	const CORRECT_GUESS = 100;
+	const CONSECUTIVE_GUESS = 250;
+	const FIRST_GUESS = 500;
+
 	// game variables
 	let stage = null;
 	let canvas = null;
+	let cardNumber;
+	let correctMatches = 0;
+	let totalPoints = 0;
+	let firstGuess = true;
+	let consecutiveGuesses = 0;
 
 	// frame rate of game
 	const FRAME_RATE = 30;
 
 	// game objects
 	let assetManager;
-	let cardNumber;
-	let firstGuess = null;
-	let secondGuess = null;
-	let correctMatches = 0;
+	let firstCard = null;
+	let secondCard = null;
 
 	const cards = new Array();
 	const positions = [
@@ -81,21 +89,36 @@
 	function onCardClicked(e) {
 		// console.log('I was clicked, I am this card ' + e.index);
 
-		if (firstGuess == null) {
-			firstGuess = cards[e.index];
+		if (firstCard == null) {
+			firstCard = cards[e.index];
 			// console.log('Card Number: ' + firstGuess._cardNumber);
 			onEnableCards();
 		} else {
-			secondGuess = cards[e.index];
+			secondCard = cards[e.index];
 			// console.log('Card Number: ' + secondGuess._cardNumber);
 
-			if (firstGuess._cardNumber == secondGuess._cardNumber) {
-				console.log('correct guess');
+			if (firstCard._cardNumber == secondCard._cardNumber) {
+				// If first guess is right give bonus
+				if (firstGuess) {
+					totalPoints += FIRST_GUESS;
+					console.log('First Guess was right, bonus points given!');
+				}
+
+				consecutiveGuesses++;
+				if (consecutiveGuesses > 1) {
+					totalPoints += CONSECUTIVE_GUESS;
+					console.log('Correct Consecutive Guesses Made, Bonus Points Given!');
+				}
+
+				// Give points for correct guess
+				totalPoints += CORRECT_GUESS;
+				console.log('Correct Guess Made, Points Given');
+
 				correctMatches++;
-				firstGuess.correctGuess();
-				secondGuess.correctGuess();
-				firstGuess = null;
-				secondGuess = null;
+				firstCard.correctGuess();
+				secondCard.correctGuess();
+				firstCard = null;
+				secondCard = null;
 
 				//! Here I need something like shake me for correct guesses
 				//! Then in that function i'd dispatch this event on animation completion
@@ -104,12 +127,21 @@
 				if (correctMatches == 8) {
 					console.log('You Won!');
 				}
+
+				console.log('You Have: ' + totalPoints + ' Total Points!');
 			} else {
-				firstGuess.shakeMe();
-				secondGuess.shakeMe();
-				firstGuess = null;
-				secondGuess = null;
+				firstCard.shakeMe();
+				secondCard.shakeMe();
+				firstCard = null;
+				secondCard = null;
+
+				consecutiveGuesses = 0;
 				console.log('wrong guess');
+			}
+
+			// Reflect if you have made your first guess
+			if (firstGuess) {
+				firstGuess = false;
 			}
 		}
 
@@ -156,9 +188,8 @@
 
 	function onResetGame(e) {
 		// kill event listener and add listener to start a new game again
-		e.remove();
+		// e.remove();
 		// background.on('click', onStartGame);
-
 		// adjust caption on screen
 		// stage.removeChild(gameOverCaption);
 		// stage.addChild(introCaption);
