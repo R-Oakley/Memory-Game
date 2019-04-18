@@ -18,6 +18,8 @@
 	let totalPoints = 0;
 	let firstGuess = true;
 	let consecutiveGuesses = 0;
+	let highScore;
+	let cookieManager;
 
 	// frame rate of game
 	const FRAME_RATE = 30;
@@ -80,6 +82,7 @@
 		setUpCards();
 
 		userInterface = new UserInterface(stage, assetManager);
+		userInterface.highScore = highScore;
 
 		// setup event listener to start game
 		btnNewGame.on('click', onStartGame);
@@ -131,6 +134,11 @@
 				if (correctMatches == 8) {
 					console.log('You Won!');
 
+					if (totalPoints > highScore) {
+						cookieManager.setCookie('bracketMemory', totalPoints);
+						userInterface.highScore = totalPoints;
+						console.log('I did this');
+					}
 					onGameOver();
 				}
 
@@ -285,8 +293,8 @@
 				cardNumber = 1;
 			} else {
 				//! Change this back to commented out, just for testing
-				// cardNumber = Math.floor(i / 2) + 1;
-				cardNumber = 1;
+				cardNumber = Math.floor(i / 2) + 1;
+				// cardNumber = 1;
 			}
 			cards.push(new Card(stage, assetManager, positions[i], cardNumber, i));
 			cards[i]._sprite.on('cardClicked', onCardClicked);
@@ -313,6 +321,17 @@
 	function main() {
 		console.log('>> initializing');
 		currentState = gameState.setup;
+
+		cookieManager = new CookieManager();
+
+		if (cookieManager.getCookie('bracketMemory') == undefined) {
+			highScore = 0;
+			cookieManager.setCookie('bracketMemory', highScore);
+			console.log('There was no cookie: ' + highScore);
+		} else {
+			highScore = Number(cookieManager.getCookie('bracketMemory'));
+			console.log('i got this from a cookie: ' + highScore);
+		}
 
 		// get reference to canvas
 		canvas = document.getElementById('myCanvas');

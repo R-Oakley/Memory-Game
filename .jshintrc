@@ -9,6 +9,7 @@
 		"AssetManager": false,
 		"Mover": false,
 		"Card": false,
-		"UserInterface": false
+		"UserInterface": false,
+		"CookieManager": false
 	}
 }

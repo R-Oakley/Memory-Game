@@ -6,5 +6,9 @@ let manifest = [
 	{
 		src: 'fontsprites.js',
 		id: 'fontsprites'
+	},
+	{
+		src: 'hscoresprite.js',
+		id: 'hscoresprite'
 	}
 ];

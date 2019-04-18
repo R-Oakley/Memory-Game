@@ -21,13 +21,24 @@ class UserInterface {
 		this._score.letterSPacing = -15;
 		this._stage.addChild(this._score);
 
+		this._highScore = new createjs.BitmapText('High Score: Loading..', assetManager.getSpriteSheet('hscoresprite'));
+		this._highScore.x = 600;
+		this._highScore.y = 330;
+		this._highScore.letterSPacing = -15;
+
+		this._stage.addChild(this._highScore);
+
 		// Custom events
 		this._restartClicked = new createjs.Event('restartClicked', true);
 	}
 
 	// get set
 	set score(value) {
-		this._score.text = 'Score: ' + String(value) + ' Pts!';
+		this._score.text = 'Score: ' + String(value) + ' Pts';
+	}
+
+	set highScore(value) {
+		this._highScore.text = 'High Score: ' + String(value) + ' Pts';
 	}
 
 	showRestartBtn() {
