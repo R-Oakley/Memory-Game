@@ -163,8 +163,6 @@
 		//! Have to variables, first guess, second guess, make them
 		//! equal to the object that caused the event, if the numbers are
 		//! the same disable them otherwise flip them back over
-
-		//!Disable clicking on everything during animations?
 	}
 
 	// When you first click a card it disables everything
