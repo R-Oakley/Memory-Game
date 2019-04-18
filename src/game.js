@@ -51,7 +51,7 @@
 	];
 
 	//! Make these
-	let introCaption;
+	// let introCaption;
 	let gameOverCaption;
 	let btnNewGame;
 	let currentState;
