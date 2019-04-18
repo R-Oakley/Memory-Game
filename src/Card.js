@@ -3,10 +3,15 @@ class Card {
 		this._stage = stage;
 
 		this._sprite = assetManager.getSprite('spritesheet');
-		stage.addChild(this._sprite);
-		this._coordinates = position.split(' ');
-		this._x = this._coordinates[0];
-		this._y = this._coordinates[1];
+
+		//! I put this in functions of their own, finish testing before removing
+		// this._coordinates = position.split(' ');
+		// this._x = this._coordinates[0];
+		// this._y = this._coordinates[1];
+		// this._stage.addChild(this._sprite);
+
+		this.setupPosition(position);
+		// this.addMe();
 		this._cardNumber = number;
 		this._cardIndex = index;
 
@@ -20,16 +25,16 @@ class Card {
 		this._cardEnable = new createjs.Event('cardEnable', true);
 		this._sprite.on('click', this._onClicked, this);
 
-		this.setupMe();
+		// this.setupMe();
 	}
 
 	// ---------------------------------------------- Public Methods
 	setupMe() {
 		// console.log(this._cardNumber);
-		this._sprite.gotoAndStop('card' + this._cardNumber + 'Reveal');
+		// this._sprite.gotoAndStop('card' + this._cardNumber + 'Reveal');
 		// console.log('card' + this._cardNumber + 'Reveal');
-		this._sprite.x = this._x;
-		this._sprite.y = this._y;
+		// this._sprite.x = this._x;
+		// this._sprite.y = this._y;
 	}
 
 	//! Do I need this? Shake Me will do the same thing?
@@ -37,7 +42,7 @@ class Card {
 		this._sprite.gotoAndPlay('card' + this._cardNumber + 'Hide');
 		this._sprite.on('animationend', e => {
 			this._sprite.stop();
-			this._hidden = !this._hidden;
+			this._hidden = true;
 			this._disabled = false;
 			this._guessed = false;
 			this._sprite.dispatchEvent(this._cardEnable);
@@ -70,8 +75,10 @@ class Card {
 
 	enableMe() {
 		this._sprite.on('click', this._onClicked, this);
+		// console.log('guessed = ' + this._guessed + ' hidden = ' + this._hidden);
 		if (!this._guessed && this._hidden) {
 			this._disabled = false;
+			// console.log('I am enabling u');
 		}
 	}
 
@@ -87,8 +94,28 @@ class Card {
 		// this._disabled = true;
 	}
 
+	setupPosition(position) {
+		this._coordinates = position.split(' ');
+		// this._x = this._coordinates[0];
+		// this._y = this._coordinates[1];
+		this._sprite.x = this._coordinates[0];
+		this._sprite.y = this._coordinates[1];
+
+		// console.log(this._sprite.x + ' , ' + this._sprite.y);
+	}
+
+	addMe() {
+		this._stage.addChild(this._sprite);
+	}
+
+	removeMe() {
+		this._stage.removeChild(this._sprite);
+	}
+
 	// ---------------------------------------------- Event Handlers
 	_onClicked(e) {
+		// console.log(this._sprite.x + ' , ' + this._sprite.y);
+		// console.log(this._cardNumber + ' , ' + this._cardIndex);
 		// If card is disabled just leave the function
 		if (this._disabled) {
 			e.remove();
