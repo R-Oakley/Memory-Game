@@ -8,6 +8,8 @@
 		"manifest": true,
 		"AssetManager": false,
 		"Mover": false,
-		"Card": false
+		"Card": false,
+		"UserInterface": false,
+		"CookieManager": false
 	}
 }

@@ -18,12 +18,15 @@
 	let totalPoints = 0;
 	let firstGuess = true;
 	let consecutiveGuesses = 0;
+	let highScore;
+	let cookieManager;
 
 	// frame rate of game
 	const FRAME_RATE = 30;
 
 	// game objects
 	let assetManager;
+	let userInterface;
 	let firstCard = null;
 	let secondCard = null;
 
@@ -49,38 +52,46 @@
 
 	//! Make these
 	let introCaption;
-	let background;
 	let gameOverCaption;
+	let btnNewGame;
+	let currentState;
+	let cardCount = 1;
+
+	const gameState = {
+		setup: 0,
+		ready: 1,
+		running: 2,
+		over: 3,
+		resetting: 4
+	};
 
 	// ------------------------------------------------------------ Event Handlers
 	function onReady(e) {
+		//! Move this to the Userinterface
+		btnNewGame = assetManager.getSprite('fontsprites');
+		btnNewGame.gotoAndStop('btnNewGame');
+		btnNewGame.x = 700;
+		btnNewGame.y = 400;
+		stage.addChild(btnNewGame);
+
 		console.log('>> setup');
 		// kill event listener
 		e.remove();
-		let i = 1;
 
-		// Randomize the order of the cards
-		positions.sort(function(a, b) {
-			return Math.random() - 0.5;
-		});
+		// Setup Cards
+		setUpCards();
 
-		// Construct 16 cards and randomize position
-		for (let i = 0; i < 16; i++) {
-			if (i == 0) {
-				cardNumber = 1;
-			} else {
-				cardNumber = Math.floor(i / 2) + 1;
-			}
-			cards.push(new Card(stage, assetManager, positions[i], cardNumber, i));
-			cards[i]._sprite.on('cardClicked', onCardClicked);
-			cards[i]._sprite.on('cardDisable', onDisableCards);
-			cards[i]._sprite.on('cardEnable', onEnableCards);
-		}
+		userInterface = new UserInterface(stage, assetManager);
+		userInterface.highScore = highScore;
 
 		// setup event listener to start game
-		// background.on('click', onStartGame);
+		btnNewGame.on('click', onStartGame);
 
+		onDisableCards();
+
+		currentState = gameState.ready;
 		console.log('>> game ready');
+
 		// startup the ticker
 		createjs.Ticker.framerate = FRAME_RATE;
 		createjs.Ticker.on('tick', onTick);
@@ -120,15 +131,19 @@
 				firstCard = null;
 				secondCard = null;
 
-				//! Here I need something like shake me for correct guesses
-				//! Then in that function i'd dispatch this event on animation completion
-				// onEnableCards();
-
 				if (correctMatches == 8) {
 					console.log('You Won!');
+
+					if (totalPoints > highScore) {
+						cookieManager.setCookie('bracketMemory', totalPoints);
+						userInterface.highScore = totalPoints;
+						console.log('I did this');
+					}
+					onGameOver();
 				}
 
 				console.log('You Have: ' + totalPoints + ' Total Points!');
+				userInterface.score = totalPoints;
 			} else {
 				firstCard.shakeMe();
 				secondCard.shakeMe();
@@ -160,33 +175,95 @@
 	}
 
 	function onEnableCards(e) {
-		//! Remove me - Just for seeing when enabling is done
-		let count = 1;
+		// If the game is currently running flip cards
+		if (currentState == gameState.running) {
+			cards.forEach(card => {
+				card.enableMe();
+				// console.log('I am doing this');
+			});
+		}
 
-		//! This doesn't wait for after the Shake me Animation, Can I fix this?
-		cards.forEach(card => {
-			card.enableMe();
-			count++;
+		// If reset was hit log this
+		if (currentState == gameState.resetting || currentState == gameState.over) {
+			// console.log('Card ' + cardCount + ' is ready');
+			cardCount++;
 
-			if (count == 16) {
-				console.log('All Clear');
+			if (cardCount == 17) {
+				cardCount = 1;
+				resetCardPositions();
+				onStartGame(e);
 			}
-		});
+		}
 	}
 
 	function onStartGame(e) {
-		// stage.removeChild(introCaption);
-		// remove click event on background
-		// e.remove();
+		// Reset Points and guesses
+		correctMatches = 0;
+		totalPoints = 0;
+		firstGuess = true;
+		consecutiveGuesses = 0;
+		userInterface.score = totalPoints;
+		firstCard = null;
+		secondCard = null;
+
+		if (currentState != gameState.resetting) {
+			if (currentState == gameState.ready) {
+				//Show cards
+				cards.forEach(card => {
+					card.addMe();
+				});
+			}
+
+			// Remove the New game button
+			stage.removeChild(btnNewGame);
+			//Add Restart Button
+			userInterface.showRestartBtn();
+
+			// remove click event on background
+			e.remove();
+		}
+
+		// Change current game state
+		currentState = gameState.running;
+
+		userInterface._btnRestart.on('restartClicked', onResetGame);
+
+		console.log('I was clicked');
+		onEnableCards();
 	}
 
 	function onGameOver(e) {
+		currentState = gameState.over;
+
 		// gameOver
-		// add listener to reset game when click background
-		// background.on('click', onResetGame);
+		stage.addChild(btnNewGame);
+		btnNewGame.on('click', onNewGame);
+
+		//Hide Restart Button
+		userInterface.hideRestartBtn();
 	}
 
+	function onNewGame(e) {
+		e.remove();
+
+		cards.forEach(card => {
+			card.hideMe();
+		});
+
+		// Remove the New game button
+		stage.removeChild(btnNewGame);
+		//Add Restart Button
+		userInterface.showRestartBtn();
+	}
 	function onResetGame(e) {
+		console.log('I am restarting');
+		e.remove();
+
+		currentState = gameState.resetting;
+		cards.forEach(card => {
+			card.hideMe();
+		});
+
 		// kill event listener and add listener to start a new game again
 		// e.remove();
 		// background.on('click', onStartGame);
@@ -203,9 +280,58 @@
 		stage.update();
 	}
 
+	// ------------------------------------------------------------------------- Public Methods
+	function setUpCards() {
+		// Randomize the order of the cards
+		positions.sort(function(a, b) {
+			return Math.random() - 0.5;
+		});
+
+		// Construct 16 cards and randomize position
+		for (let i = 0; i < 16; i++) {
+			if (i == 0) {
+				cardNumber = 1;
+			} else {
+				//! Change this back to commented out, just for testing
+				cardNumber = Math.floor(i / 2) + 1;
+				// cardNumber = 1;
+			}
+			cards.push(new Card(stage, assetManager, positions[i], cardNumber, i));
+			cards[i]._sprite.on('cardClicked', onCardClicked);
+			cards[i]._sprite.on('cardDisable', onDisableCards);
+			cards[i]._sprite.on('cardEnable', onEnableCards);
+		}
+	}
+
+	function resetCardPositions() {
+		console.log('I got here');
+		// Randomize the position of the cards
+		positions.sort(function(a, b) {
+			return Math.random() - 0.5;
+		});
+
+		// console.log(positions);
+		// Set new random position on cards
+		for (let i = 0; i < 16; i++) {
+			cards[i].setupPosition(positions[i]);
+		}
+	}
+
 	// ------------------------------------------------------------------------- Main Method
 	function main() {
 		console.log('>> initializing');
+		currentState = gameState.setup;
+
+		cookieManager = new CookieManager();
+
+		if (cookieManager.getCookie('bracketMemory') == undefined) {
+			highScore = 0;
+			cookieManager.setCookie('bracketMemory', highScore);
+			console.log('There was no cookie: ' + highScore);
+		} else {
+			highScore = Number(cookieManager.getCookie('bracketMemory'));
+			console.log('i got this from a cookie: ' + highScore);
+		}
 
 		// get reference to canvas
 		canvas = document.getElementById('myCanvas');
@@ -220,6 +346,7 @@
 		// construct preloader object to load spritesheet and sound assets
 		assetManager = new AssetManager(stage);
 		stage.on('allAssetsLoaded', onReady);
+
 		// load the assets
 		assetManager.loadAssets(manifest);
 	}
