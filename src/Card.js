@@ -51,6 +51,8 @@ class Card {
 	}
 
 	revealMe() {
+		createjs.Sound.play('cardClickedSound');
+
 		this._sprite.gotoAndPlay('card' + this._cardNumber + 'Reveal');
 		this._sprite.on('animationend', e => {
 			this._sprite.stop();

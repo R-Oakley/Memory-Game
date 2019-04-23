@@ -13,6 +13,7 @@ class UserInterface {
 		this._btnRestart.gotoAndStop('btnRestart');
 		this._btnRestart.x = 700;
 		this._btnRestart.y = 400;
+		this._btnRestart.disabled = false;
 		this._btnRestart.on('click', this._onRestartClicked, this);
 
 		this._score = new createjs.BitmapText('Score: 0 Pts', assetManager.getSpriteSheet('fontsprites'));
@@ -49,7 +50,18 @@ class UserInterface {
 		this._stage.removeChild(this._btnRestart);
 	}
 
+	disableRestartBtn() {
+		this._btnRestart.disabled = true;
+	}
+
+	enableRestartBtn() {
+		this._btnRestart.disabled = false;
+		console.log('I am enabled');
+	}
+
 	_onRestartClicked() {
-		this._btnRestart.dispatchEvent(this._restartClicked);
+		if (!this._btnRestart.disabled) {
+			this._btnRestart.dispatchEvent(this._restartClicked);
+		}
 	}
 }
