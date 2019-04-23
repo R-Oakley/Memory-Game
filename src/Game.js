@@ -56,6 +56,7 @@
 	let btnNewGame;
 	let currentState;
 	let cardCount = 1;
+	let enableCount = 0;
 
 	const gameState = {
 		setup: 0,
@@ -99,6 +100,8 @@
 
 	function onCardClicked(e) {
 		// console.log('I was clicked, I am this card ' + e.index);
+		// userInterface.disableRestartBtn();
+		console.log('I ma disabled');
 
 		if (firstCard == null) {
 			firstCard = cards[e.index];
@@ -133,6 +136,7 @@
 
 				if (correctMatches == 8) {
 					console.log('You Won!');
+					createjs.Sound.play('winSound');
 
 					if (totalPoints > highScore) {
 						cookieManager.setCookie('bracketMemory', totalPoints);
@@ -140,11 +144,14 @@
 						console.log('I did this');
 					}
 					onGameOver();
+				} else {
+					createjs.Sound.play('correctSound');
 				}
 
 				console.log('You Have: ' + totalPoints + ' Total Points!');
 				userInterface.score = totalPoints;
 			} else {
+				createjs.Sound.play('wrongSound');
 				firstCard.shakeMe();
 				secondCard.shakeMe();
 				firstCard = null;
@@ -167,19 +174,35 @@
 
 	// When you first click a card it disables everything
 	function onDisableCards(e) {
+		userInterface.disableRestartBtn();
+
 		cards.forEach(card => {
 			card.disableMe();
 		});
 	}
 
 	function onEnableCards(e) {
-		// If the game is currently running flip cards
-		if (currentState == gameState.running) {
+		userInterface.enableRestartBtn();
+
+		if (currentState == gameState.ready) {
 			cards.forEach(card => {
 				card.enableMe();
-				// console.log('I am doing this');
 			});
 		}
+
+		// If the game is currently running flip cards
+		if (currentState == gameState.running) {
+			enableCount++;
+			console.log(enableCount);
+			if (enableCount == 3) {
+				userInterface.enableRestartBtn();
+				enableCount = 0;
+			}
+			cards.forEach(card => {
+				card.enableMe();
+			});
+		}
+		console.log('Now I am doing this');
 
 		// If reset was hit log this
 		if (currentState == gameState.resetting || currentState == gameState.over) {
@@ -204,6 +227,9 @@
 		firstCard = null;
 		secondCard = null;
 
+		// Play New Game Sound
+		createjs.Sound.play('gameStartSound');
+
 		if (currentState != gameState.resetting) {
 			if (currentState == gameState.ready) {
 				//Show cards
@@ -220,14 +246,13 @@
 			// remove click event on background
 			e.remove();
 		}
-
-		// Change current game state
-		currentState = gameState.running;
+		onEnableCards();
 
 		userInterface._btnRestart.on('restartClicked', onResetGame);
 
 		console.log('I was clicked');
-		onEnableCards();
+		// Change current game state
+		currentState = gameState.running;
 	}
 
 	function onGameOver(e) {
@@ -253,6 +278,7 @@
 		//Add Restart Button
 		userInterface.showRestartBtn();
 	}
+
 	function onResetGame(e) {
 		console.log('I am restarting');
 		e.remove();
@@ -261,6 +287,8 @@
 		cards.forEach(card => {
 			card.hideMe();
 		});
+
+		enableCount = 0;
 
 		// kill event listener and add listener to start a new game again
 		// e.remove();
