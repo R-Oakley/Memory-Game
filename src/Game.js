@@ -51,12 +51,10 @@
 	];
 
 	//! Make these
-	// let introCaption;
-	let gameOverCaption;
 	let btnNewGame;
 	let currentState;
 	let cardCount = 1;
-	let enableCount = 0;
+	// let enableCount = 0;
 
 	const gameState = {
 		setup: 0,
@@ -69,11 +67,11 @@
 	// ------------------------------------------------------------ Event Handlers
 	function onReady(e) {
 		//! Move this to the Userinterface
-		btnNewGame = assetManager.getSprite('fontsprites');
-		btnNewGame.gotoAndStop('btnNewGame');
-		btnNewGame.x = 700;
-		btnNewGame.y = 400;
-		stage.addChild(btnNewGame);
+		// btnNewGame = assetManager.getSprite('fontsprites');
+		// btnNewGame.gotoAndStop('btnNewGame');
+		// btnNewGame.x = 700;
+		// btnNewGame.y = 400;
+		// stage.addChild(btnNewGame);
 
 		console.log('>> setup');
 		// kill event listener
@@ -86,7 +84,8 @@
 		userInterface.highScore = highScore;
 
 		// setup event listener to start game
-		btnNewGame.on('click', onStartGame);
+		// btnNewGame.on('click', onStartGame);
+		userInterface._btnNewGame.on('newGameClicked', onStartGame);
 
 		onDisableCards();
 
@@ -99,10 +98,6 @@
 	}
 
 	function onCardClicked(e) {
-		// console.log('I was clicked, I am this card ' + e.index);
-		// userInterface.disableRestartBtn();
-		console.log('I ma disabled');
-
 		if (firstCard == null) {
 			firstCard = cards[e.index];
 			// console.log('Card Number: ' + firstGuess._cardNumber);
@@ -166,10 +161,6 @@
 				firstGuess = false;
 			}
 		}
-
-		//! Have to variables, first guess, second guess, make them
-		//! equal to the object that caused the event, if the numbers are
-		//! the same disable them otherwise flip them back over
 	}
 
 	// When you first click a card it disables everything
@@ -192,17 +183,16 @@
 
 		// If the game is currently running flip cards
 		if (currentState == gameState.running) {
-			enableCount++;
-			console.log(enableCount);
-			if (enableCount == 3) {
-				userInterface.enableRestartBtn();
-				enableCount = 0;
-			}
+			// enableCount++;
+			// console.log(enableCount);
+			// if (enableCount == 3) {
+			// 	userInterface.enableRestartBtn();
+			// 	enableCount = 0;
+			// }
 			cards.forEach(card => {
 				card.enableMe();
 			});
 		}
-		console.log('Now I am doing this');
 
 		// If reset was hit log this
 		if (currentState == gameState.resetting || currentState == gameState.over) {
@@ -239,11 +229,13 @@
 			}
 
 			// Remove the New game button
-			stage.removeChild(btnNewGame);
+			// stage.removeChild(btnNewGame);
+			userInterface.hideNewGameBtn();
+
 			//Add Restart Button
 			userInterface.showRestartBtn();
 
-			// remove click event on background
+			// remove click event on New Game Button
 			e.remove();
 		}
 		onEnableCards();
@@ -259,8 +251,10 @@
 		currentState = gameState.over;
 
 		// gameOver
-		stage.addChild(btnNewGame);
-		btnNewGame.on('click', onNewGame);
+		// stage.addChild(btnNewGame);
+		// btnNewGame.on('click', onNewGame);
+		userInterface.showNewGameBtn();
+		userInterface._btnNewGame.on('newGameClicked', onNewGame);
 
 		//Hide Restart Button
 		userInterface.hideRestartBtn();
@@ -274,7 +268,8 @@
 		});
 
 		// Remove the New game button
-		stage.removeChild(btnNewGame);
+		// stage.removeChild(btnNewGame);
+		userInterface.hideNewGameBtn();
 		//Add Restart Button
 		userInterface.showRestartBtn();
 	}
@@ -288,7 +283,7 @@
 			card.hideMe();
 		});
 
-		enableCount = 0;
+		// enableCount = 0;
 
 		// kill event listener and add listener to start a new game again
 		// e.remove();
