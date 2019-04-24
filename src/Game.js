@@ -5,12 +5,12 @@
  */
 
 (function() {
-	//points constants
+	//Points Constants
 	const CORRECT_GUESS = 100;
 	const CONSECUTIVE_GUESS = 250;
 	const FIRST_GUESS = 500;
 
-	// game variables
+	// Game Variables
 	let stage = null;
 	let canvas = null;
 	let cardNumber;
@@ -19,18 +19,8 @@
 	let firstGuess = true;
 	let consecutiveGuesses = 0;
 	let highScore;
-	let cookieManager;
-
-	// frame rate of game
-	const FRAME_RATE = 30;
-
-	// game objects
-	let assetManager;
-	let userInterface;
-	let firstCard = null;
-	let secondCard = null;
-
-	const cards = new Array();
+	let currentState;
+	let cardCount = 1;
 	const positions = [
 		'100 100',
 		'200 100',
@@ -50,14 +40,18 @@
 		'400 400'
 	];
 
-	//! Make these
-	// let introCaption;
-	let gameOverCaption;
-	let btnNewGame;
-	let currentState;
-	let cardCount = 1;
-	let enableCount = 0;
+	// Frame Rate of Game
+	const FRAME_RATE = 30;
 
+	// Game Objects
+	let assetManager;
+	let cookieManager;
+	let userInterface;
+	let firstCard = null;
+	let secondCard = null;
+	const cards = new Array();
+
+	// game state object
 	const gameState = {
 		setup: 0,
 		ready: 1,
@@ -68,13 +62,6 @@
 
 	// ------------------------------------------------------------ Event Handlers
 	function onReady(e) {
-		//! Move this to the Userinterface
-		btnNewGame = assetManager.getSprite('fontsprites');
-		btnNewGame.gotoAndStop('btnNewGame');
-		btnNewGame.x = 700;
-		btnNewGame.y = 400;
-		stage.addChild(btnNewGame);
-
 		console.log('>> setup');
 		// kill event listener
 		e.remove();
@@ -86,7 +73,8 @@
 		userInterface.highScore = highScore;
 
 		// setup event listener to start game
-		btnNewGame.on('click', onStartGame);
+		// btnNewGame.on('click', onStartGame);
+		userInterface._btnNewGame.on('newGameClicked', onStartGame);
 
 		onDisableCards();
 
@@ -99,26 +87,26 @@
 	}
 
 	function onCardClicked(e) {
-		// console.log('I was clicked, I am this card ' + e.index);
-		// userInterface.disableRestartBtn();
-		console.log('I ma disabled');
-
+		// If first card is null assign it this card and then enable cards again
 		if (firstCard == null) {
 			firstCard = cards[e.index];
-			// console.log('Card Number: ' + firstGuess._cardNumber);
 			onEnableCards();
 		} else {
+			// If its the second guess assign the card to second card
 			secondCard = cards[e.index];
-			// console.log('Card Number: ' + secondGuess._cardNumber);
 
+			// If the two card numbers match do the following
 			if (firstCard._cardNumber == secondCard._cardNumber) {
-				// If first guess is right give bonus
+				// If first guess is true give bonus
 				if (firstGuess) {
 					totalPoints += FIRST_GUESS;
 					console.log('First Guess was right, bonus points given!');
 				}
 
+				// Increment consecutive guesses
 				consecutiveGuesses++;
+
+				// If there are consecutive guess assign points
 				if (consecutiveGuesses > 1) {
 					totalPoints += CONSECUTIVE_GUESS;
 					console.log('Correct Consecutive Guesses Made, Bonus Points Given!');
@@ -128,51 +116,64 @@
 				totalPoints += CORRECT_GUESS;
 				console.log('Correct Guess Made, Points Given');
 
+				// Increment correct matches count
 				correctMatches++;
+
+				// Mark both cards as correct guessed
 				firstCard.correctGuess();
 				secondCard.correctGuess();
+
+				// Reset both first and second card objects
 				firstCard = null;
 				secondCard = null;
 
+				// If correct matches is 8 then you won and do the following
 				if (correctMatches == 8) {
 					console.log('You Won!');
+
+					// Play the win sound
 					createjs.Sound.play('winSound');
 
+					// If total points is more than high score then change it
 					if (totalPoints > highScore) {
 						cookieManager.setCookie('bracketMemory', totalPoints);
 						userInterface.highScore = totalPoints;
-						console.log('I did this');
 					}
+
+					// Go to game over function
 					onGameOver();
 				} else {
+					// Play the correct guess sound if the game isn't over
 					createjs.Sound.play('correctSound');
 				}
 
 				console.log('You Have: ' + totalPoints + ' Total Points!');
 				userInterface.score = totalPoints;
 			} else {
+				// Play the wrong guess sound
 				createjs.Sound.play('wrongSound');
+
+				// Play the shake animation on both cards
 				firstCard.shakeMe();
 				secondCard.shakeMe();
+
+				// Reset both first and second card objects
 				firstCard = null;
 				secondCard = null;
 
+				// Reset the consecutive guesses to 0
 				consecutiveGuesses = 0;
 				console.log('wrong guess');
 			}
 
-			// Reflect if you have made your first guess
+			// Reflect if you are on first guess or not
 			if (firstGuess) {
 				firstGuess = false;
 			}
 		}
-
-		//! Have to variables, first guess, second guess, make them
-		//! equal to the object that caused the event, if the numbers are
-		//! the same disable them otherwise flip them back over
 	}
 
-	// When you first click a card it disables everything
+	// Disable all the cards and the restart button
 	function onDisableCards(e) {
 		userInterface.disableRestartBtn();
 
@@ -181,32 +182,16 @@
 		});
 	}
 
+	// Enable all the cards and the restart button
 	function onEnableCards(e) {
 		userInterface.enableRestartBtn();
 
-		if (currentState == gameState.ready) {
-			cards.forEach(card => {
-				card.enableMe();
-			});
-		}
+		cards.forEach(card => {
+			card.enableMe();
+		});
 
-		// If the game is currently running flip cards
-		if (currentState == gameState.running) {
-			enableCount++;
-			console.log(enableCount);
-			if (enableCount == 3) {
-				userInterface.enableRestartBtn();
-				enableCount = 0;
-			}
-			cards.forEach(card => {
-				card.enableMe();
-			});
-		}
-		console.log('Now I am doing this');
-
-		// If reset was hit log this
+		// If game is resetting or over reset the card positions and run start game
 		if (currentState == gameState.resetting || currentState == gameState.over) {
-			// console.log('Card ' + cardCount + ' is ready');
 			cardCount++;
 
 			if (cardCount == 17) {
@@ -217,8 +202,9 @@
 		}
 	}
 
+	// Start the game and do the following
 	function onStartGame(e) {
-		// Reset Points and guesses
+		// Reset Points and guesses and other variables
 		correctMatches = 0;
 		totalPoints = 0;
 		firstGuess = true;
@@ -230,7 +216,9 @@
 		// Play New Game Sound
 		createjs.Sound.play('gameStartSound');
 
+		// If the game isn't resetting
 		if (currentState != gameState.resetting) {
+			// If the game state is ready then add the cards to the stage
 			if (currentState == gameState.ready) {
 				//Show cards
 				cards.forEach(card => {
@@ -239,65 +227,72 @@
 			}
 
 			// Remove the New game button
-			stage.removeChild(btnNewGame);
+			userInterface.hideNewGameBtn();
+
 			//Add Restart Button
 			userInterface.showRestartBtn();
 
-			// remove click event on background
+			// Remove click event on New Game Button
 			e.remove();
 		}
+
+		// Enable all the cards
 		onEnableCards();
 
+		// Add the event listener to restart button
 		userInterface._btnRestart.on('restartClicked', onResetGame);
 
-		console.log('I was clicked');
 		// Change current game state
 		currentState = gameState.running;
 	}
 
+	// When game is over do the following
 	function onGameOver(e) {
+		// Change the game state to over
 		currentState = gameState.over;
 
-		// gameOver
-		stage.addChild(btnNewGame);
-		btnNewGame.on('click', onNewGame);
+		// Show new game button and add event listener
+		userInterface.showNewGameBtn();
+		userInterface._btnNewGame.on('newGameClicked', onNewGame);
 
 		//Hide Restart Button
 		userInterface.hideRestartBtn();
 	}
 
+	// WHen new game starts
 	function onNewGame(e) {
+		// Remove event listener
 		e.remove();
 
+		// Hide all the cards
 		cards.forEach(card => {
 			card.hideMe();
 		});
 
 		// Remove the New game button
-		stage.removeChild(btnNewGame);
+		userInterface.hideNewGameBtn();
+
 		//Add Restart Button
 		userInterface.showRestartBtn();
 	}
 
+	// If game is reset
 	function onResetGame(e) {
 		console.log('I am restarting');
+
+		// Remove the event listener
 		e.remove();
 
+		// Change the current game state to resetting
 		currentState = gameState.resetting;
+
+		// Hide all the cards
 		cards.forEach(card => {
 			card.hideMe();
 		});
-
-		enableCount = 0;
-
-		// kill event listener and add listener to start a new game again
-		// e.remove();
-		// background.on('click', onStartGame);
-		// adjust caption on screen
-		// stage.removeChild(gameOverCaption);
-		// stage.addChild(introCaption);
 	}
 
+	// Game ticker, update fps and update stage
 	function onTick(e) {
 		// TESTING FPS
 		document.getElementById('fps').innerHTML = createjs.Ticker.getMeasuredFPS();
@@ -307,6 +302,8 @@
 	}
 
 	// ------------------------------------------------------------------------- Public Methods
+
+	// Setup the cards on game load
 	function setUpCards() {
 		// Randomize the order of the cards
 		positions.sort(function(a, b) {
@@ -322,6 +319,7 @@
 				cardNumber = Math.floor(i / 2) + 1;
 				// cardNumber = 1;
 			}
+			// Push card to card array and setup event listeners
 			cards.push(new Card(stage, assetManager, positions[i], cardNumber, i));
 			cards[i]._sprite.on('cardClicked', onCardClicked);
 			cards[i]._sprite.on('cardDisable', onDisableCards);
@@ -329,14 +327,13 @@
 		}
 	}
 
+	// Reset the card positions
 	function resetCardPositions() {
-		console.log('I got here');
 		// Randomize the position of the cards
 		positions.sort(function(a, b) {
 			return Math.random() - 0.5;
 		});
 
-		// console.log(positions);
 		// Set new random position on cards
 		for (let i = 0; i < 16; i++) {
 			cards[i].setupPosition(positions[i]);
@@ -346,10 +343,15 @@
 	// ------------------------------------------------------------------------- Main Method
 	function main() {
 		console.log('>> initializing');
+
+		// Set current game state to setup
 		currentState = gameState.setup;
 
+		// Construct Cookie Manager object
 		cookieManager = new CookieManager();
 
+		// If no cookie is found set high score to 0 and set cookie to that score
+		// Otherwise load high score from the cookie value retrieved
 		if (cookieManager.getCookie('bracketMemory') == undefined) {
 			highScore = 0;
 			cookieManager.setCookie('bracketMemory', highScore);
@@ -359,21 +361,23 @@
 			console.log('i got this from a cookie: ' + highScore);
 		}
 
-		// get reference to canvas
+		// Get reference to canvas
 		canvas = document.getElementById('myCanvas');
-		// set canvas to as wide/high as the browser window
+
+		// Set canvas to as wide/high as the browser window
 		canvas.width = 1000;
 		canvas.height = 600;
-		// create stage object
+
+		// Create stage object
 		stage = new createjs.StageGL(canvas);
 		stage.setClearColor('#1A1A1A');
 		stage.enableMouseOver(10);
 
-		// construct preloader object to load spritesheet and sound assets
+		// Construct preloader object to load spritesheet and sound assets
 		assetManager = new AssetManager(stage);
 		stage.on('allAssetsLoaded', onReady);
 
-		// load the assets
+		// Load the assets
 		assetManager.loadAssets(manifest);
 	}
 
