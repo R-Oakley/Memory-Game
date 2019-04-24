@@ -355,10 +355,8 @@
 		if (cookieManager.getCookie('bracketMemory') == undefined) {
 			highScore = 0;
 			cookieManager.setCookie('bracketMemory', highScore);
-			console.log('There was no cookie: ' + highScore);
 		} else {
 			highScore = Number(cookieManager.getCookie('bracketMemory'));
-			console.log('i got this from a cookie: ' + highScore);
 		}
 
 		// Get reference to canvas
