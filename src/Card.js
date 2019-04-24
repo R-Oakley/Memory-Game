@@ -1,43 +1,36 @@
 class Card {
 	constructor(stage, assetManager, position, number, index) {
+		// Setup stage
 		this._stage = stage;
 
+		// Setup sprite
 		this._sprite = assetManager.getSprite('spritesheet');
 
-		//! I put this in functions of their own, finish testing before removing
-		// this._coordinates = position.split(' ');
-		// this._x = this._coordinates[0];
-		// this._y = this._coordinates[1];
-		// this._stage.addChild(this._sprite);
-
+		// Setup position of the card
 		this.setupPosition(position);
-		// this.addMe();
+
+		// setup Card number and index property
 		this._cardNumber = number;
 		this._cardIndex = index;
 
+		// Start card not guessed, not disabled and hidden
 		this._guessed = false;
 		this._disabled = false;
 		this._hidden = true;
 
-		// this._cardClicked = new createjs.Event('card' + number);
+		// Custom events
 		this._cardClicked = new createjs.Event('cardClicked', true);
 		this._cardDisable = new createjs.Event('cardDisable', true);
 		this._cardEnable = new createjs.Event('cardEnable', true);
-		this._sprite.on('click', this._onClicked, this);
 
-		// this.setupMe();
+		// Setup click listener
+		this._sprite.on('click', this._onClicked, this);
 	}
 
 	// ---------------------------------------------- Public Methods
-	setupMe() {
-		// console.log(this._cardNumber);
-		// this._sprite.gotoAndStop('card' + this._cardNumber + 'Reveal');
-		// console.log('card' + this._cardNumber + 'Reveal');
-		// this._sprite.x = this._x;
-		// this._sprite.y = this._y;
-	}
 
-	//! Do I need this? Shake Me will do the same thing?
+	// Hide the card again and reset appropriate values
+	// Dispatch event when finished animation
 	hideMe() {
 		this._sprite.gotoAndPlay('card' + this._cardNumber + 'Hide');
 		this._sprite.on('animationend', e => {
@@ -50,6 +43,8 @@ class Card {
 		});
 	}
 
+	// Reveal card and play clicked card sound
+	// Dispatch event when finished and change hidden state
 	revealMe() {
 		createjs.Sound.play('cardClickedSound');
 
@@ -62,6 +57,7 @@ class Card {
 		});
 	}
 
+	// Shake the card then go to hide me
 	shakeMe() {
 		this._sprite.gotoAndPlay('card' + this._cardNumber + 'Shake');
 		this._sprite.on('animationend', e => {
@@ -71,19 +67,24 @@ class Card {
 		});
 	}
 
+	// Set disabled property of card
 	disableMe() {
 		this._disabled = true;
 	}
 
+	// Enable the card and setup click listener again
+	// Only enable the card if nots guessed and its hidden
 	enableMe() {
 		this._sprite.on('click', this._onClicked, this);
-		// console.log('guessed = ' + this._guessed + ' hidden = ' + this._hidden);
+
 		if (!this._guessed && this._hidden) {
 			this._disabled = false;
-			// console.log('I am enabling u');
 		}
 	}
 
+	// Play correct guess animation on this card
+	// Dispatch event when animation is finished
+	// Set guessed property to true
 	correctGuess() {
 		this._sprite.gotoAndPlay('card' + this._cardNumber + 'Correct');
 		this._sprite.on('animationend', e => {
@@ -93,43 +94,46 @@ class Card {
 		});
 
 		this._guessed = true;
-		// this._disabled = true;
 	}
 
+	// Set the position of the card
 	setupPosition(position) {
+		// Get x and y coordinates in separate values
 		this._coordinates = position.split(' ');
-		// this._x = this._coordinates[0];
-		// this._y = this._coordinates[1];
+
+		// Set the x and y values
 		this._sprite.x = this._coordinates[0];
 		this._sprite.y = this._coordinates[1];
-
-		// console.log(this._sprite.x + ' , ' + this._sprite.y);
 	}
 
+	// Add card to the stage
 	addMe() {
 		this._stage.addChild(this._sprite);
 	}
 
+	// Remove the card from the stage
 	removeMe() {
 		this._stage.removeChild(this._sprite);
 	}
 
 	// ---------------------------------------------- Event Handlers
+
+	// When card is clicked go here
 	_onClicked(e) {
-		// console.log(this._sprite.x + ' , ' + this._sprite.y);
-		// console.log(this._cardNumber + ' , ' + this._cardIndex);
 		// If card is disabled just leave the function
 		if (this._disabled) {
 			e.remove();
 			return;
 		}
+
+		// Dispatch the disable event so it can't be clicked again
 		this._sprite.dispatchEvent(this._cardDisable);
 
-		// console.log(this._hidden);
-		//! This line fixes the property not being recognized after first click
+		// This line fixes the property not being recognized after first click
 		this._cardClicked.target = null;
 		this._cardClicked.index = this._cardIndex;
 
+		// If the card is hidden reveal it
 		if (this._hidden) {
 			this.revealMe();
 		}
